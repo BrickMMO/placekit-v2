@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css?family=Varela+Round:wght@300&family=Roboto+Condensed:ital,wght@0,300;0,700;1,700&display=swap');
+
+body{
+	margin: 0;
+	font-family: Varela Round;
+	font-size: 16px;
+    background: #f4f4f4;
+}
+main{
+    padding: 15px;
+}
+.url{
+	background: #fff2cc;
+    padding: 4px 5px;
+    border-radius: 5px;
+    border: solid 1px #fbe9b3;
+}
+.attr{
+	margin: 0 5px;
+    background: #f8d56d;
+    padding: 0 5px;
+    border: solid 1px #c6ae69;
+}
