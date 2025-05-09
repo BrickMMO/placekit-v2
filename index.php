@@ -13,9 +13,17 @@
 
         <h1>Placekit-v2: Generated Image</h1>
         <p>Here is the dynamically generated image with the dimensions and color:</p>
-        <p><strong>How to use:</strong> <span class="url">http://localhost/placekit-v2/?<span class="attr">width=[VALUE]</span>&<span class="attr">height=[VALUE]</span>&<span class="attr">color=[VALUE]</span></span></p>
+        <p><strong>How to use:</strong></p>
+        <p>
+            <span class="url">
+                <?=$_SERVER['REQUEST_SCHEME']?>://<?=$_SERVER['HTTP_HOST']?>/image/?
+                <span class="attr">width=[VALUE]</span>
+                &<span class="attr">height=[VALUE]</span>
+                &<span class="attr">color=[VALUE]</span>
+            </span>
+        </p>
 
-        <img src="/image/?width=600&height=600&colour=ffffff&bg=336699" alt="Generated Image">
+        <img src="/image/?width=600&height=600&colour=ffffff&bg=336699" alt="">
 
     </main>
 
