@@ -43,5 +43,5 @@ imagettftext($image, $text_size, 0,
     round(($image_height /*- $text_height*/) / 2), 
     $colour, $font, $text_content);
 
-header("Content-Type: image/png");
+header("Content-Type: image/jpeg");
 echo imagejpeg($image);

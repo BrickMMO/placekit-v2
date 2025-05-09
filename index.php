@@ -11,7 +11,8 @@
 <body>
     <main>
 
-        <h1>Placekit-v2: Generated Image</h1>
+        <h1>Placekit</h1>
+        <h2>Dynamically Generated Image</h2>
         <p>Here is the dynamically generated image with the dimensions and color:</p>
         <p><strong>How to use:</strong></p>
         <p>
