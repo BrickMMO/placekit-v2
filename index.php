@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Placekit-v2</title>
+    <title>Placekit | BrickMMO</title>
     <link href="assets/styles.css" rel="stylesheet">
 </head>
 
