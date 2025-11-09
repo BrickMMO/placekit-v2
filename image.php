@@ -1,47 +1,111 @@
 <?php
+declare(strict_types=1);
 
-require __DIR__ . '/vendor/autoload.php';
+ini_set('display_errors', '1');
+error_reporting(E_ALL);
 
-function hex2rgb( $colour ) {
 
-    $colour = str_replace('#', '', $colour);
-    list($r, $g, $b) = array_map("hexdec", str_split($colour, (strlen( $colour ) / 3)));
-    return array( 'red' => $r, 'green' => $g, 'blue' => $b );
+function fail(int $status, string $msg): void {
+    http_response_code($status);
+    header('Content-Type: text/plain; charset=utf-8');
+    echo $msg;
+    exit;
+}
+function get_int(string $key, int $default): int {
+    return isset($_GET[$key]) ? max(1, (int)$_GET[$key]) : $default;
+}
+function get_str(string $key, ?string $default=null): ?string {
+    return isset($_GET[$key]) ? trim($_GET[$key]) : $default;
+}
+function load_image(string $path) {
+    $info = @getimagesize($path);
+    if (!$info || empty($info['mime'])) return null;
+    return match ($info['mime']) {
+        'image/jpeg' => @imagecreatefromjpeg($path),
+        'image/png'  => @imagecreatefrompng($path),
+        'image/gif'  => @imagecreatefromgif($path),
+        default      => null,
+    };
+}
+function cover_resize($src, int $w, int $h) {
+    $sw = imagesx($src); $sh = imagesy($src);
+    $dst = imagecreatetruecolor($w, $h);
+    $white = imagecolorallocate($dst, 255, 255, 255);
+    imagefilledrectangle($dst, 0, 0, $w, $h, $white);
+
+    $scale = max($w / $sw, $h / $sh);
+    $nw = (int)ceil($sw * $scale);
+    $nh = (int)ceil($sh * $scale);
+    $dx = (int)floor(($w - $nw) / 2);
+    $dy = (int)floor(($h - $nh) / 2);
+
+    imagecopyresampled($dst, $src, $dx, $dy, 0, 0, $nw, $nh, $sw, $sh);
+    return $dst;
+}
+function draw_overlay_text($img, string $text): void {
+    $font = __DIR__ . '/fonts/ARIALBD.TTF'; 
+    $h = imagesy($img); $w = imagesx($img);
+    $bar = imagecolorallocatealpha($img, 0, 0, 0, 70);
+    imagefilledrectangle($img, 0, $h - 48, $w, $h, $bar);
+
+    $white = imagecolorallocate($img, 255, 255, 255);
+    if (is_file($font)) {
+        $size = max(12, (int)round($h / 24));
+        $bbox = imagettfbbox($size, 0, $font, $text);
+        $textW = $bbox[2] - $bbox[0];
+        $textH = $bbox[1] - $bbox[7];
+        $x = (int)round(($w - $textW) / 2);
+        $y = (int)round($h - 48/2 - $textH/2 + $textH);
+        imagettftext($img, $size, 0, $x, $y, $white, $font, $text);
+    } else {
+        $fontId = 5;
+        $fontW = imagefontwidth($fontId);
+        $fontH = imagefontheight($fontId);
+        $textW = strlen($text) * $fontW;
+        $x = (int)round(($w - $textW) / 2);
+        $y = (int)round($h - 48 + (48 - $fontH) / 2);
+        imagestring($img, $fontId, $x, $y, $text, $white);
+    }
 }
 
-$font = __DIR__.'/ARIALBD.TTF';
+$w        = get_int('width', 800);
+$h        = get_int('height', 500);
+$imageKey = get_str('image', 'random');   
+$overlay  = (int) (get_str('overlay', '0') ?? '0');
+$text     = strtoupper(get_str('text', "{$w}x{$h}") ?? "{$w}x{$h}");
 
-// Get image information based on URL parameters
-$image_width = isset($_GET['width']) ? $_GET['width'] : 800;
-$image_height = isset($_GET['height']) ? $_GET['height'] : 500;
 
-$text_content = isset($_GET['text']) ? $_GET['text'] : $image_width.' x '.$image_height;
-$text_content = strtoupper($text_content);
-$text_size = $image_height / 12;
+$imagesDir = __DIR__ . '/images';
+if (!is_dir($imagesDir)) {
+    fail(404, 'Images folder not found. Create /images and add JPG/PNG/GIF files.');
+}
+$files = glob($imagesDir . '/*.{jpg,jpeg,png,gif,JPG,JPEG,PNG,GIF}', GLOB_BRACE);
+if (!$files) fail(404, 'No images found in /images. Add JPG/PNG/GIF files.');
 
-$bg_colour = isset($_GET['bg']) ? $_GET['bg'] : 'ffffff';
-$bg_colour = hex2rgb($bg_colour);
+natsort($files);
+$files = array_values($files); 
 
-$text_colour = isset($_GET['colour']) ? $_GET['colour'] : '000000';
-$text_colour = hex2rgb($text_colour);
 
-// Make a draft image for placing content and measuring sizing
-$draft = imagecreate($image_width, $image_height);
-$colour = imagecolorallocate($draft, $text_colour['red'], $text_colour['green'], $text_colour['blue']);
-$text_box = imagettftext($draft, $text_size, 0, 0, 0, $colour, $font, $text_content);
-$text_width = abs($text_box[4] - $text_box[0]);
-$text_height = abs($text_box[5] - $text_box[1]);
+if ($imageKey === 'random') {
+    $path = $files[array_rand($files)];
+} else {
+    $idx = max(1, (int)$imageKey);           
+    $i = $idx - 1;                           
+    if (!isset($files[$i])) {
+        fail(404, "Image index {$idx} not found. Available: 1.." . count($files));
+    }
+    $path = $files[$i];
+}
 
-// Make actual iange
-$image = imagecreate($image_width, $image_height);
-$colour = imagecolorallocate($image, $text_colour['red'], $text_colour['green'], $text_colour['blue']);
-$bg = imagecolorallocate($image, $bg_colour['red'], $bg_colour['green'], $bg_colour['blue']);
-imagefill($image, 0, 0, $bg);
 
-imagettftext($image, $text_size, 0,
-    round(($image_width - $text_width) / 2), 
-    round(($image_height /*- $text_height*/) / 2), 
-    $colour, $font, $text_content);
+$src = load_image($path);
+if (!$src) fail(415, 'Unsupported or unreadable image format');
 
-header("Content-Type: image/jpeg");
-echo imagejpeg($image);
+$dst = cover_resize($src, $w, $h);
+if ($overlay) draw_overlay_text($dst, $text);
+
+header('Content-Type: image/jpeg');
+imagejpeg($dst, null, 90);
+
+imagedestroy($src);
+imagedestroy($dst);
