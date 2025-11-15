@@ -22,13 +22,6 @@ if (is_dir($images_dir))
 <html lang="en">
 <head>
 
-  <script src="https://cdn.brickmmo.com/bar@1.1.0/bar.js" 
-    data-console="false" 
-    data-menu="false" 
-    data-admin="false" 
-    data-local="false" 
-    data-https="true"></script>
-
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PlaceKit | BrickMMO</title>
@@ -256,6 +249,13 @@ if (is_dir($images_dir))
 
 
   </script>
+
+  <script src="https://cdn.brickmmo.com/bar@1.1.0/bar.js" 
+    data-console="false" 
+    data-menu="false" 
+    data-admin="false" 
+    data-local="false" 
+    data-https="true"></script>
 
 </body>
 </html>
